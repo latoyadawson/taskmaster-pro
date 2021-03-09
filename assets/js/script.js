@@ -45,18 +45,57 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+
+// modal was triggered
+$("#task-form-modal").on("show.bs.modal", function() {
+  // clear values 
+  $("#modalTaskDescription, #modalDueDate").val("");
+});
+
+// modal is fully visible
+$("#task-form-modal").on("shown.bs.modal", function() {
+  // highlight textarea
+  $("#modalTaskDescription").trigger("focus");
+});
+
+// save button in modal was clicked
+$("#task-form-modal .btn-primary").click(function() {
+  // get form values
+  var taskText = $("#modalTaskDescription").val();
+  var taskDate = $("#modalDueDate").val();
+
+  if (taskText && taskDate) {
+    createTask(taskText, taskDate, "toDo");
+
+    // close modal
+    $("#task-form-modal").modal("hide");
+
+    // save in tasks array
+    tasks.toDo.push({
+      text: taskText,
+      date: taskDate
+    });
+
+    saveTasks();
+  }
+});
+
 //make the <p> tag editable 
 $(".list-group").on("click" , "p", function() {
   //will trim the white space of the text element
   var text = $(this)
     .text()
     .trim();
+
   //create new textarea and add a class and get the value of the text
   var textInput = $("<textarea>")
     .addClass("form-control")
     .val(text);
+
   //replace p tag with <textarea>
   $(this).replaceWith(textInput);
+
+  //auto focus on new element
   textInput.trigger("focus");
 });
 
@@ -78,6 +117,7 @@ $(".list-group").on("blur" ,"textarea" , function() {
   var index = $(this)
     .closest(".list-group-item")
     .index();
+    
   //updating task but with placedholders for the actual values 
   tasks[status][index].text = text;
   saveTasks();  
@@ -112,7 +152,6 @@ $(".list-group").on("click" , "span" , function(){
   dateInput.trigger("focus");
 });
 
-
 //value of due date was changed, convert back when the user clicks outside
 $(".list-group").on("blur" , "input[type='text']" , function(){
   //get current text 
@@ -142,41 +181,6 @@ $(".list-group").on("blur" , "input[type='text']" , function(){
 
   //replace textarea with p element
   $(this).replaceWith(taskSpan);  
-});
-
-
-// modal was triggered
-$("#task-form-modal").on("show.bs.modal", function() {
-  // clear values 
-  $("#modalTaskDescription, #modalDueDate").val("");
-});
-
-// modal is fully visible
-$("#task-form-modal").on("shown.bs.modal", function() {
-  // highlight textarea
-  $("#modalTaskDescription").trigger("focus");
-});
-
-// save button in modal was clicked
-$("#task-form-modal .btn-primary").click(function() {
-  // get form values
-  var taskText = $("#modalTaskDescription").val();
-  var taskDate = $("#modalDueDate").val();
-
-  if (taskText && taskDate) {
-    createTask(taskText, taskDate, "toDo");
-
-    // close modal
-    $("#task-form-modal").modal("hide");
-
-    // save in tasks array
-    tasks.toDo.push({
-      text: taskText,
-      date: taskDate
-    });
-
-    saveTasks();
-  }
 });
 
 // remove all tasks
