@@ -13,9 +13,37 @@ var createTask = function(taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
+  //check due date 
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
+};
+
+
+var auditTask = function(taskEl) {
+  //get date from task element 
+  var date = $(taskEl).find("span")
+    .text()
+    .trim();
+  //ensure it worked 
+  console.log(date);
+
+  //convert to moment object at 5:00pm
+  var time = moment(date , "L").set("hour" , 17);
+  //this should print out an object for the value of the date variable 
+  console.log(time);
+
+  //remove any old classes from element
+  $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
+
+  //apply new class if taks is near/over due date 
+  if(moment().isAfter(time)){
+    $(taskEl).addClass("list-group-item-danger");
+  }
+  else if (Math.abs(moment().diff(time, "days")) <= 2) {
+    $(taskEl).addClass("list-group-item-warning");
+  }
 };
 
 var loadTasks = function() {
@@ -78,6 +106,11 @@ $("#task-form-modal .btn-primary").click(function() {
 
     saveTasks();
   }
+});
+
+//add date pick to modual 
+$("#modalDueDate").datepicker({
+  minDate: 1
 });
 
 //make the <p> tag editable 
@@ -147,13 +180,22 @@ $(".list-group").on("click" , "span" , function(){
 
   //swap out elements
   $(this).replaceWith(dateInput);
+
+  //enable jquery ui datepciker 
+  dateInput.datepicker({
+    minDate: 1,
+    onClose: function () {
+      //when calendar is lcosed force a change ven on the dateInput
+      $(this).trigger("change");
+    }
+  });
   
   //automatically focus on new element 
   dateInput.trigger("focus");
 });
 
 //value of due date was changed, convert back when the user clicks outside
-$(".list-group").on("blur" , "input[type='text']" , function(){
+$(".list-group").on("change" , "input[type='text']" , function(){
   //get current text 
   var date = $(this)
     .val()
@@ -181,6 +223,9 @@ $(".list-group").on("blur" , "input[type='text']" , function(){
 
   //replace textarea with p element
   $(this).replaceWith(taskSpan);  
+
+  //pass tasks <li> element into aduitTask() to check new due date 
+  auditTask($(taskSpan).closest("list-group-item"));
 });
 
 // remove all tasks
@@ -259,6 +304,7 @@ $("#trash").droppable({
     //console.log("out");
   }
 });
+
 // load tasks for the first time
 loadTasks();
 
